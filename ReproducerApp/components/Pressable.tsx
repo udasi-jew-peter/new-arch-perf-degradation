@@ -1,7 +1,7 @@
 import {BoxProps, useRestyle, useTheme} from '@shopify/restyle';
-import {MotiPressableProps} from 'moti/interactions';
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import {
+  Animated,
   GestureResponderEvent,
   PressableProps,
   Pressable as RNPressable,
@@ -9,14 +9,9 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import {Theme} from '../temp/theme';
 import {restyleFunctions} from './utils';
+import {Box} from './Foundation';
 
 export const AnimatedPressable = forwardRef<
   typeof Pressable,
@@ -33,37 +28,46 @@ export const AnimatedPressable = forwardRef<
 
   // 0 meaning not pressed
   // 1 meaning pressed
-  const stateTweener = useSharedValue(0);
+  const stateTweener = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (isPressed) {
-      stateTweener.value = withTiming(1, {
+      Animated.timing(stateTweener, {
+        toValue: 1,
         duration: motion.durations.duration0,
+        useNativeDriver: true,
       });
     } else {
-      stateTweener.value = withTiming(0, {
+      Animated.timing(stateTweener, {
+        toValue: 0,
         duration: motion.durations.duration0,
+        useNativeDriver: true,
       });
     }
   }, [isPressed, motion]);
 
-  const animatedContainerStyle = useAnimatedStyle(() => {
-    const customStyles = animate?.(isPressed) ?? {};
+  const customStyles = animate?.(isPressed);
 
-    return {
-      transform: [{scale: interpolate(stateTweener.value, [0, 1], [1, 0.95])}],
-      ...customStyles,
-    };
-  });
+  const animatedContainerStyle = {
+    transform: [
+      {
+        scale: stateTweener.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0.95],
+        }),
+      },
+    ],
+    ...customStyles,
+  };
 
   return (
     <Pressable
       {...props}
       onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}
-      // @ts-ignore
-      style={containerStyle}>
-      <Animated.View style={[animatedContainerStyle, style]}>
+      onPressOut={() => setIsPressed(false)}>
+      <Box style={containerStyle}></Box>
+      <Animated.View
+        style={[animatedContainerStyle, style, customStyles ?? {}]}>
         {children}
       </Animated.View>
     </Pressable>

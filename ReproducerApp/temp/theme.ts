@@ -1,7 +1,6 @@
 import {createTheme} from '@shopify/restyle';
 import * as tokens from './tokens';
-import {Platform} from 'react-native';
-import {Easing} from 'react-native-reanimated';
+import {Easing, Platform} from 'react-native';
 
 export const generateEasing = (easing: number[]) => {
   if (easing.length < 4) {

@@ -2,9 +2,8 @@ import {BaseState, ColorScheme} from './types';
 import {useTheme} from '@shopify/restyle';
 import {AnimatedPressable, Box, Text} from '.';
 import {Theme} from '../temp/theme';
-import {MotiView} from 'moti';
-import React, {useCallback, useMemo} from 'react';
-import {StyleSheet} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {Animated, StyleSheet} from 'react-native';
 import {LoadingIndicator} from './LoadingIndicator';
 import {customTokens} from './tokens';
 
@@ -269,6 +268,38 @@ const Button: React.FC<ButtonProps> = ({
     ],
   );
 
+  const loadingTweener = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isLoading) {
+      Animated.timing(loadingTweener, {
+        toValue: 1,
+        useNativeDriver: true,
+        duration: motion.durations.duration1,
+        delay: motion.delays.delay2,
+        easing: motion.easings.standardEffective,
+      }).start();
+    } else {
+      Animated.timing(loadingTweener, {
+        toValue: 0,
+        useNativeDriver: true,
+        duration: motion.durations.duration1,
+        delay: motion.delays.delay2,
+        easing: motion.easings.standardEffective,
+      }).start();
+    }
+  }, [isLoading]);
+
+  const contentOpacity = loadingTweener.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
+  const contentScale = loadingTweener.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.48],
+  });
+
   return (
     <AnimatedPressable
       accessibilityLabel={accessibilityLabel}
@@ -287,27 +318,14 @@ const Button: React.FC<ButtonProps> = ({
         },
         [backgroundColor, pressedBackgroundColor],
       )}>
-      <MotiView
-        style={styles.textContainer}
-        from={{
-          opacity: customTokens.opacityOpaque,
-          scale: 1,
-        }}
-        animate={{
-          opacity: isLoading
-            ? customTokens.opacityTransparent
-            : customTokens.opacityOpaque,
-          scale: isLoading
-            ? opacity.semiTransparent
-            : customTokens.opacityOpaque,
-        }}
-        // @ts-ignore
-        transition={{
-          duration: motion.durations.duration1,
-          delay: motion.delays.delay2,
-          easing: motion.easings.standardEffective,
-          type: 'timing',
-        }}>
+      <Animated.View
+        style={[
+          styles.textContainer,
+          {
+            opacity: contentOpacity,
+            transform: [{scale: contentScale}],
+          },
+        ]}>
         <Box
           borderBottomWidth={
             variant === 'tertiary' ? borderWidths.default : undefined
@@ -317,7 +335,7 @@ const Button: React.FC<ButtonProps> = ({
             {label}
           </Text>
         </Box>
-      </MotiView>
+      </Animated.View>
       <LoadingIndicator
         show={isLoading}
         color={loadingIndicatorColor}

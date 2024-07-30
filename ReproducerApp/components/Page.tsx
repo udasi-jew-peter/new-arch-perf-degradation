@@ -5,17 +5,13 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   RefreshControlProps,
+  ScrollView,
   ScrollViewProps,
   StatusBar,
 } from 'react-native';
-import {
-  IOComponentProps,
-  IOScrollView,
-} from 'react-native-intersection-observer';
 import {Theme} from '../temp/theme';
 import {Box, SafeTopSpace} from './Foundation';
 import {_Page} from './_Page';
-import {ScrollView} from 'react-native-gesture-handler';
 
 type PageColorScheme = 'lightA' | 'lightB' | 'dark';
 
@@ -27,9 +23,7 @@ export interface PageProps {
   refreshControl?: React.ReactElement<RefreshControlProps>;
   dockedFooter?: React.ReactNode;
   children?: React.ReactNode;
-  scrollViewConfig?: IOComponentProps &
-    ScrollViewProps &
-    RefAttributes<ScrollView>;
+  scrollViewConfig?: ScrollViewProps;
 }
 
 export interface PageWithoutScrollProps {
@@ -66,7 +60,7 @@ export const Page: React.FC<PageProps> = ({
 
   return (
     <_Page {...props} pageSize={pageSize} scrollY={scrollY}>
-      <IOScrollView
+      <ScrollView
         {...scrollViewConfig}
         onScroll={scrollHandler}
         style={{backgroundColor: colors[bgColor]}}
@@ -74,7 +68,7 @@ export const Page: React.FC<PageProps> = ({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps>
         {children}
-      </IOScrollView>
+      </ScrollView>
 
       {dockedFooter}
     </_Page>

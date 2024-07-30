@@ -1,16 +1,7 @@
 import {Theme} from '../temp/theme';
 import {useTheme} from '@shopify/restyle';
-import React, {useEffect, useMemo} from 'react';
-import {StyleSheet} from 'react-native';
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {Animated, StyleSheet} from 'react-native';
 import {ButtonSize} from './Button';
 
 interface LoadingIndicatorProps {
@@ -29,10 +20,10 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
   color,
 }) => {
   const {spacing, borderRadius, motion} = useTheme<Theme>();
-  const visibilityTweener = useSharedValue(0);
-  const dot1Tweener = useSharedValue(0);
-  const dot2Tweener = useSharedValue(0);
-  const dot3Tweener = useSharedValue(0);
+  const visibilityTweener = useRef(new Animated.Value(0)).current;
+  const dot1Tweener = useRef(new Animated.Value(0)).current;
+  const dot2Tweener = useRef(new Animated.Value(0)).current;
+  const dot3Tweener = useRef(new Animated.Value(0)).current;
 
   let dotPositionOffset = 10;
   if (size === 'm') {
@@ -43,117 +34,114 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
 
   useEffect(() => {
     if (show) {
-      visibilityTweener.value = withDelay(
-        motion.delays.delay2,
-        withTiming(1, {
-          duration: motion.durations.duration1,
-          easing: motion.easings.standardEffective,
-        }),
-      );
-      dot1Tweener.value = withRepeat(
-        withSequence(
-          withDelay(
-            motion.delays.delay1 + motion.delays.delay2,
-            withTiming(dotPositionTop, {
-              duration: motion.durations.duration3,
-              easing: motion.easings.standardAttentive,
-            }),
-          ),
-          withTiming(dotPositionBottom, {
-            duration: motion.durations.duration2,
-            easing: motion.easings.standardAttentive,
-          }),
-          withTiming(dotPositionInitial, {
+      Animated.timing(visibilityTweener, {
+        toValue: 1,
+        duration: motion.durations.duration1,
+        easing: motion.easings.standardEffective,
+        delay: motion.delays.delay2,
+        useNativeDriver: true,
+      }).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(dot1Tweener, {
+            toValue: dotPositionTop,
             duration: motion.durations.duration3,
             easing: motion.easings.standardAttentive,
+            delay: motion.delays.delay1 + motion.delays.delay2,
+            useNativeDriver: true,
           }),
-        ),
-        -1,
-      );
-      dot2Tweener.value = withDelay(
-        motion.delays.delay0 / 2,
-        withRepeat(
-          withSequence(
-            withDelay(
-              motion.delays.delay1 + motion.delays.delay2,
-              withTiming(dotPositionTop, {
-                duration: motion.durations.duration3,
-                easing: motion.easings.standardAttentive,
-              }),
-            ),
-            withTiming(dotPositionBottom, {
-              duration: motion.durations.duration2,
-              easing: motion.easings.standardAttentive,
-            }),
-            withTiming(dotPositionInitial, {
-              duration: motion.durations.duration3,
-              easing: motion.easings.standardAttentive,
-            }),
-          ),
-          -1,
-        ),
-      );
-      dot3Tweener.value = withDelay(
-        motion.delays.delay0,
-        withRepeat(
-          withSequence(
-            withDelay(
-              motion.delays.delay1 + motion.delays.delay2,
-              withTiming(dotPositionTop, {
-                duration: motion.durations.duration3,
-                easing: motion.easings.standardAttentive,
-              }),
-            ),
-            withTiming(dotPositionBottom, {
-              duration: motion.durations.duration2,
-              easing: motion.easings.standardAttentive,
-            }),
-            withTiming(dotPositionInitial, {
-              duration: motion.durations.duration3,
-              easing: motion.easings.standardAttentive,
-            }),
-          ),
-          -1,
-        ),
-      );
+          Animated.timing(dot1Tweener, {
+            toValue: dotPositionBottom,
+            duration: motion.durations.duration2,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot1Tweener, {
+            toValue: dotPositionInitial,
+            duration: motion.durations.duration3,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+        ]),
+        {iterations: -1},
+      ).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(motion.delays.delay0 / 2),
+          Animated.timing(dot2Tweener, {
+            toValue: dotPositionTop,
+            duration: motion.durations.duration3,
+            easing: motion.easings.standardAttentive,
+            delay: motion.delays.delay1 + motion.delays.delay2,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot2Tweener, {
+            toValue: dotPositionBottom,
+            duration: motion.durations.duration2,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot2Tweener, {
+            toValue: dotPositionInitial,
+            duration: motion.durations.duration3,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+        ]),
+        {iterations: -1},
+      ).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(motion.delays.delay0),
+          Animated.timing(dot3Tweener, {
+            toValue: dotPositionTop,
+            duration: motion.durations.duration3,
+            easing: motion.easings.standardAttentive,
+            delay: motion.delays.delay1 + motion.delays.delay2,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot3Tweener, {
+            toValue: dotPositionBottom,
+            duration: motion.durations.duration2,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot3Tweener, {
+            toValue: dotPositionInitial,
+            duration: motion.durations.duration3,
+            easing: motion.easings.standardAttentive,
+            useNativeDriver: true,
+          }),
+        ]),
+        {iterations: -1},
+      ).start();
     } else {
-      visibilityTweener.value = withDelay(
-        motion.delays.delay1,
-        withTiming(0, {duration: motion.durations.duration0}),
-      );
-      dot1Tweener.value = dotPositionInitial;
-      dot2Tweener.value = dotPositionInitial;
-      dot3Tweener.value = dotPositionInitial;
+      Animated.timing(visibilityTweener, {
+        toValue: 0,
+        duration: motion.durations.duration0,
+        delay: motion.delays.delay1,
+        useNativeDriver: true,
+      }).start();
+      Animated.timing(dot1Tweener, {
+        toValue: dotPositionInitial,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
+      Animated.timing(dot2Tweener, {
+        toValue: dotPositionInitial,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
+      Animated.timing(dot3Tweener, {
+        toValue: dotPositionInitial,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
     }
   }, [motion, show, dot1Tweener, visibilityTweener, dot2Tweener, dot3Tweener]);
-
-  const containerStyle = useAnimatedStyle(() => ({
-    zIndex: 10,
-    position: 'absolute',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xxs,
-    opacity: visibilityTweener.value,
-  }));
-
-  const dot1Style = useAnimatedStyle(() => ({
-    transform: [
-      {translateX: interpolate(visibilityTweener.value, [0, 1], [-15, 0])},
-      {translateY: dot1Tweener.value * dotPositionOffset},
-    ],
-  }));
-
-  const dot2Style = useAnimatedStyle(() => ({
-    transform: [{translateY: dot2Tweener.value * dotPositionOffset}],
-  }));
-
-  const dot3Style = useAnimatedStyle(() => ({
-    transform: [
-      {translateX: interpolate(visibilityTweener.value, [0, 1], [15, 0])},
-      {translateY: dot3Tweener.value * dotPositionOffset},
-    ],
-  }));
 
   const styles = useMemo(
     () =>
@@ -164,15 +152,68 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
           backgroundColor: color,
           borderRadius: borderRadius.circular,
         },
+        container: {
+          zIndex: 10,
+          position: 'absolute',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: spacing.xxs,
+        },
       }),
     [borderRadius, color],
   );
 
   return (
-    <Animated.View style={containerStyle}>
-      <Animated.View style={[styles.dot, dot1Style]} />
-      <Animated.View style={[styles.dot, dot2Style]} />
-      <Animated.View style={[styles.dot, dot3Style]} />
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity: visibilityTweener,
+        },
+      ]}>
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            transform: [
+              {
+                translateX: visibilityTweener.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-15, 0],
+                }),
+              },
+              {translateY: Animated.multiply(dot1Tweener, dotPositionOffset)},
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            transform: [
+              {translateY: Animated.multiply(dot2Tweener, dotPositionOffset)},
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            transform: [
+              {
+                translateX: visibilityTweener.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [15, 0],
+                }),
+              },
+              {translateY: Animated.multiply(dot3Tweener, dotPositionOffset)},
+            ],
+          },
+        ]}
+      />
     </Animated.View>
   );
 };

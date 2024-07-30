@@ -1,4 +1,3 @@
-import {TextInput} from 'react-native-gesture-handler';
 import {Button, Page, SectionHeading, Text, TextField} from './components';
 import React, {useEffect, useState} from 'react';
 

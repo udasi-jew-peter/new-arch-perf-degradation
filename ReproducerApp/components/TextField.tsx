@@ -3,8 +3,16 @@ import {InputState} from './types';
 import {useTheme} from '@shopify/restyle';
 import {Box, Text} from '.';
 import {Theme} from '../temp/theme';
-import React, {RefObject, useCallback, useMemo, useState} from 'react';
+import React, {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  Animated,
   NativeSyntheticEvent,
   NativeTouchEvent,
   Platform,
@@ -12,7 +20,6 @@ import {
   TextInput,
   TextInputProps,
 } from 'react-native';
-import {MotiText, MotiView} from 'moti';
 
 export type TextInputRef = RefObject<TextInput>;
 
@@ -112,6 +119,9 @@ const TextField = React.forwardRef<
           label: {
             color: colors.lightContentSecondary,
             position: isFilledOrFocused ? 'relative' : 'absolute',
+            ...(isFilledOrFocused
+              ? textVariants.labelSmall
+              : textVariants.labelLarge),
           },
           container: {
             borderRadius: borderRadius.small,
@@ -119,6 +129,7 @@ const TextField = React.forwardRef<
             height: customTokens.sizingTextFieldHeight,
             flexDirection: 'row',
             justifyContent: 'space-between',
+            borderColor: colors[borderColor],
             backgroundColor: isDisabled
               ? colors.lightBgDisabled
               : colors.lightBgPrimaryB,
@@ -144,35 +155,57 @@ const TextField = React.forwardRef<
       _onPressOut?.(e);
     };
 
+    // 0 means not pressed
+    // 1 means pressed
+    const tweener = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      if (isFocused) {
+        Animated.timing(tweener, {
+          toValue: 1,
+          duration: motion.durations.duration0,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        Animated.timing(tweener, {
+          toValue: 0,
+          duration: motion.durations.duration0,
+          useNativeDriver: true,
+        }).start();
+      }
+    }, [isFocused]);
+
     return (
       <Box width="100%">
-        <MotiView
-          style={styles.container}
-          animate={{
-            scale: !isFilled && isPressed ? 0.95 : 1,
-            borderWidth: isFocused ? borderWidths.focus : borderWidths.default,
-            borderColor: colors[borderColor],
-          }}
-          // @ts-ignore
-          transition={{
-            duration: motion.durations.duration0,
-            type: 'timing',
-          }}>
+        <Animated.View
+          style={
+            (styles.container,
+            {
+              transform: [
+                {
+                  scale: !isFilled
+                    ? tweener.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 0.95],
+                      })
+                    : 1,
+                },
+              ],
+              borderWidth: isFocused
+                ? borderWidths.focus
+                : borderWidths.default,
+            })
+          }>
           <Box flex={1} justifyContent="center">
-            <MotiText
-              animate={{
-                ...(isFilledOrFocused
-                  ? textVariants.labelSmall
-                  : textVariants.labelLarge),
-              }}
-              // @ts-ignore
-              transition={{
-                duration: motion.durations.duration0,
-                type: 'timing',
-              }}
+            <Animated.Text
+              // // @ts-ignore
+              // transition={{
+              //   duration: motion.durations.duration0,
+              //   type: 'timing',
+              // }}
               style={styles.label}>
               {label}
-            </MotiText>
+            </Animated.Text>
 
             <Box flexDirection={'row'} alignItems={'center'}>
               {isFilledOrFocused && leadingText ? (
@@ -225,7 +258,7 @@ const TextField = React.forwardRef<
               ) : null}
             </Box>
           </Box>
-        </MotiView>
+        </Animated.View>
         <Box
           mt="xxs"
           flexDirection={'row'}
