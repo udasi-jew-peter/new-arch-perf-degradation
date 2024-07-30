@@ -7,7 +7,7 @@ const Splash = () => {
   const [input, setInput] = useState('');
 
   useEffect(() => {
-    let timeout = null;
+    let timeout: NodeJS.Timeout | null = null;
     if (state === 'loading') {
       timeout = setTimeout(() => {
         setState('enabled');
